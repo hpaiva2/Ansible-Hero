@@ -1,0 +1,38 @@
+---
+
+
+- name : The Cloud Bootcamp AWS - Mod02 - IAM with ansible
+  hosts: localhost
+
+  connection: local
+  
+  gather_facts: false
+
+  vars:
+
+    aws_access_key: "{{ aws_access_key }}"
+
+    aws_secret_key: "{{ aws_secret_key }}"
+
+  vars_files:
+  - creds.yml
+  
+  tasks:
+  - name: Lendo o arquivo CSV
+    community.general.read_csv:
+       path: usuarios2.csv
+    delegate_to: localhost
+    register: userlist
+  
+  - name: Listar Arquivo CSV
+    ansible.builtin.debug:
+      msg:"{{ userlist.list }}"
+
+  - name: Criar Usuarios e Senhas
+    community.aws.iam_user:
+      name: "{{item.usuarios}}"
+      password: "{{item.senha}}"
+      password_reset_required: true
+      update_password: on_create
+      state: present
+    loop: "{{userlist.list}}"
